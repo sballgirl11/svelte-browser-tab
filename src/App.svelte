@@ -79,6 +79,12 @@
 		justify-content: center;
 	}
 
+	.center {
+		display: grid;
+		justify-items: center;
+		align-content: flex-start;
+	}
+
 	:global(.main__item--center) {
 		grid-area: mc;
 	}
@@ -229,7 +235,7 @@
 </style>
 
 <svelte:head>
-	<title>{$asciimoji}</title>
+	<title>Töövoo ~ { greetText }, { $greetingName }</title>
 </svelte:head>
 
 <Wallpaper settingsVisible="{settingsPanelVisible}" />
@@ -240,12 +246,14 @@
 	</div>
 
 	{#if clockMini}
+	
 	<div class="main__item main__item--top-center">
-		<Clock />
+		<div class="center">
+			<Greeting lang="{$language}" />
+			<Clock />
+		</div>
 	</div>
-	<div class="main__item main__item--top-right">
-		<Greeting lang="{$language}" />
-	</div>
+	
 	{:else}
 	<div
 		class="main__item main__item--center clock-group"
@@ -299,6 +307,25 @@
 	import { clockDisplay, language, settingsReady } from './stores/settings';
 	import wallpaper from './stores/wallpaper';
 	import asciimoji from './stores/asciimoji';
+	import { greetingName } from './stores/settings';
+	import timer from './stores/timer';
+	import tinycare from './stores/tinycare';
+
+	let greetText = '';
+
+	const { hours } = $timer;
+	if (hours < 12) {
+		// morning
+		greetText = 'Good morning';
+	} else if (hours < 18) {
+		// afternoon
+		greetText = 'Good afternoon';
+	} else if (hours < 22) {
+		// evening
+		greetText = 'Good evening';
+	} else {
+		greetText = 'Good night';
+	}
 
 	$: clockMini = $clockDisplay === 'mini';
 	$: clockDisplayBlend = $clockDisplay === 'blend';
