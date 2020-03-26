@@ -1,3 +1,61 @@
+<script>
+	/* © 2019 int3ractive.com
+	 * @author Thanh Tran
+	 */
+	import { setContext } from 'svelte';
+	import Wallpaper from './components/Wallpaper.svelte';
+	import PhotoCredit from './components/PhotoCredit.svelte';
+	import Quicklinks from './components/Quicklinks.svelte';
+	import Quote from './components/Quote.svelte';
+	import Clock from './components/Clock.svelte';
+	import Greeting from './components/Greeting.svelte';
+	import SettingsOverlay from './components/SettingsOverlay.svelte';
+	import { clockDisplay, language, settingsReady } from './stores/settings';
+	import wallpaper from './stores/wallpaper';
+	import asciimoji from './stores/asciimoji';
+	import { greetingName } from './stores/settings';
+	import timer from './stores/timer';
+	import tinycare from './stores/tinycare';
+
+	let greetText = '';
+
+	const { hours } = $timer;
+	if (hours < 12) {
+		// morning
+		greetText = 'Good morning';
+	} else if (hours < 18) {
+		// afternoon
+		greetText = 'Good afternoon';
+	} else if (hours < 22) {
+		// evening
+		greetText = 'Good evening';
+	} else {
+		greetText = 'Good night';
+	}
+
+	$: clockMini = $clockDisplay === 'mini';
+	$: clockDisplayBlend = $clockDisplay === 'blend';
+	$: centerGroupStyle = $clockDisplay === 'blend' ? `color: ${$wallpaper.color}` : '';
+
+	let settingsPanelVisible = false;
+
+	function toggleSettingPanels() {
+		settingsPanelVisible = !settingsPanelVisible;
+		// console.log(settingsPanelVisible);
+	}
+
+	function handleKeyUp(event) {
+		// console.log(event.key);
+		if (settingsPanelVisible && event.key === 'Escape') {
+			settingsPanelVisible = false;
+		}
+	}
+
+	setContext('settingsPanel', {
+		toggleSettingPanels,
+	});
+</script>
+
 <style>
 	:global(body) {
 		text-rendering: geometricPrecision; /* this will make thin font not being bolden by subpixel-antialias Chrome */
@@ -235,10 +293,14 @@
 </style>
 
 <svelte:head>
-	<title>Töövoo ~ { greetText }, { $greetingName }</title>
+	{#if $greetingName}
+		<title>Töövoo ~ {greetText}, {$greetingName}</title>
+	{:else}
+		<title>Töövoo ~ {greetText}</title>
+	{/if}
 </svelte:head>
 
-<Wallpaper settingsVisible="{settingsPanelVisible}" />
+<Wallpaper settingsVisible={settingsPanelVisible} />
 
 <main class="main">
 	<div class="main__item main__item--top-left quick-links">
@@ -246,24 +308,21 @@
 	</div>
 
 	{#if clockMini}
-	
-	<div class="main__item main__item--top-center">
-		<div class="center">
-			<Greeting lang="{$language}" />
+		<div class="main__item main__item--top-center">
 			<Clock />
 		</div>
-	</div>
-	
+		<div class="main__item main__item--top-right">
+			<Greeting lang={$language} />
+		</div>
 	{:else}
-	<div
-		class="main__item main__item--center clock-group"
-		class:clock-group--blend="{clockDisplayBlend}"
-		class:clock-group--invisible="{!$settingsReady}"
-		style="{centerGroupStyle}"
-	>
-		<Clock center blend="{clockDisplayBlend}" />
-		<Greeting lang="{$language}" center blend="{clockDisplayBlend}" />
-	</div>
+		<div
+			class="main__item main__item--center clock-group"
+			class:clock-group--blend={clockDisplayBlend}
+			class:clock-group--invisible={!$settingsReady}
+			style={centerGroupStyle}>
+			<Clock center blend={clockDisplayBlend} />
+			<Greeting lang={$language} center blend={clockDisplayBlend} />
+		</div>
 	{/if}
 
 	<Quote />
@@ -272,8 +331,7 @@
 			class="setting-btn icon-btn mdi mdi--settings"
 			type="button"
 			title="Open Settings"
-			on:click="{toggleSettingPanels}"
-		></button>
+			on:click={toggleSettingPanels} />
 		<PhotoCredit />
 	</div>
 	<div class="main__item main__item--bottom-right">
@@ -282,70 +340,10 @@
 				href="https://int3ractive.com/nau-tab"
 				class="quick-links__link logo"
 				data-title="Made in Saigon"
-				title="Visit project site"
-			>
-			</a>
+				title="Visit project site" />
 		</div>
 	</div>
 </main>
-<SettingsOverlay visible="{settingsPanelVisible}" />
+<SettingsOverlay visible={settingsPanelVisible} />
 
-<svelte:window on:keyup="{handleKeyUp}" />
-
-<script>
-	/* © 2019 int3ractive.com
-	 * @author Thanh Tran
-	 */
-	import { setContext } from 'svelte';
-	import Wallpaper from './components/Wallpaper.svelte';
-	import PhotoCredit from './components/PhotoCredit.svelte';
-	import Quicklinks from './components/Quicklinks.svelte';
-	import Quote from './components/Quote.svelte';
-	import Clock from './components/Clock.svelte';
-	import Greeting from './components/Greeting.svelte';
-	import SettingsOverlay from './components/SettingsOverlay.svelte';
-	import { clockDisplay, language, settingsReady } from './stores/settings';
-	import wallpaper from './stores/wallpaper';
-	import asciimoji from './stores/asciimoji';
-	import { greetingName } from './stores/settings';
-	import timer from './stores/timer';
-	import tinycare from './stores/tinycare';
-
-	let greetText = '';
-
-	const { hours } = $timer;
-	if (hours < 12) {
-		// morning
-		greetText = 'Good morning';
-	} else if (hours < 18) {
-		// afternoon
-		greetText = 'Good afternoon';
-	} else if (hours < 22) {
-		// evening
-		greetText = 'Good evening';
-	} else {
-		greetText = 'Good night';
-	}
-
-	$: clockMini = $clockDisplay === 'mini';
-	$: clockDisplayBlend = $clockDisplay === 'blend';
-	$: centerGroupStyle = $clockDisplay === 'blend' ? `color: ${$wallpaper.color}` : '';
-
-	let settingsPanelVisible = false;
-
-	function toggleSettingPanels() {
-		settingsPanelVisible = !settingsPanelVisible;
-		// console.log(settingsPanelVisible);
-	}
-
-	function handleKeyUp(event) {
-		// console.log(event.key);
-		if (settingsPanelVisible && event.key === 'Escape') {
-			settingsPanelVisible = false;
-		}
-	}
-
-	setContext('settingsPanel', {
-		toggleSettingPanels,
-	});
-</script>
+<svelte:window on:keyup={handleKeyUp} />
